@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+       xmlns:rich="http://richfaces.org/rich"
+      xmlns:p="http://primefaces.org/ui">
+
+	<h:head>
+	
+		<!--Add your own page title-->
+		<title>Shopping Cart</title>
+		
+		<!-- The resources folder must be placed directly under WebContent -->
+		<h:outputStylesheet library="css" name="style.css"  />
+		<h:outputStylesheet library="css" name="basketlist_style.css"  />
+		
+		<link href='https://fonts.googleapis.com/css?family=Orbitron:900' rel='stylesheet' type='text/css'></link>
+		
+	</h:head>
+	<h:body>
+	
+			<div class="pagewrapper">
+				
+				<ui:include src="resources/structure/header.xhtml" />
+				
+				<div class="contentwrapper">
+				
+					<ui:include src="resources/structure/sidebar.xhtml" />
+					
+					<div class="contentpadding">
+						<div class="content">
+						
+						<h1 style="">Your Shopping Cart</h1>
+						
+						<h:form>
+						    <h:commandButton class="checkout" value="Checkout" action="checkout.xhtml" style="float: right" disabled="#{empty cartBean.cartProducts}"/>
+								<br/>
+								<br/>
+							<p:dataTable class="productstable" id="cartTable" value="#{cartBean.cartProducts}" var="Product" style="width: 100%"
+										emptyMessage="Your shopping cart doesn't contain any products. Go add some!" rowsPerPageLabel=" Rows per page" rowsPerPageTemplate="10,15,20,25,30,35,40" paginator="true" rows="10">
+							  
+								<p:column style="text-align: center;width: 100px;">
+									<h:graphicImage url ="data:image;base64,#{Product.productImageAsBase64}" width="95" height="70"/>
+								</p:column>
+							
+								<p:column style="text-align: center;">
+									<f:facet name="header">
+										<h:outputText value="Name" />
+									</f:facet>
+									<h:outputLink value="productview.xhtml?id=#{Product.productID}">
+										<h:outputText value="#{Product.productName}" />
+									</h:outputLink>
+								</p:column>
+							
+								<p:column style="text-align: center;width: 100px;">
+									<f:facet name="header">
+										<h:outputText value="Quantity" />
+									</f:facet>
+	
+										<p:spinner value="#{Product.amountBought}" min="1" max="#{Product.productAmount}" size="1">
+											<f:ajax render="@all" listener="#{cartBean.controlMaxAmount(Product)}"/>
+										</p:spinner>
+										
+										
+								</p:column>
+							
+								<p:column style="text-align: center; width: 120px;">
+									<f:facet name="header">
+										<h:outputText value="Price" />
+									</f:facet>
+									<div class="pricetag">
+										<h:outputText value="#{Product.productPrice}" />
+									</div>
+								</p:column>
+							
+								<p:column style="text-align: center; width: 100px;">
+									<f:facet name="header">
+										<h:outputText value="Edit" />
+									</f:facet>
+	
+										<h:commandButton action="#{cartBean.removeFromCart(Product.productID)}" value="Remove">
+											<f:ajax render="cartTable cartQuantity @form" />
+										</h:commandButton>
+	
+								</p:column>
+							  
+							
+							</p:dataTable>
+							
+							<div style="margin-top:50px; font-weight:bold; font-size:18px;">
+								<h:outputText value="Total Price:  " />
+								<h:outputText style="font-size:20px;" class="pricetag" id="price" value="#{cartBean.totalPrice}" />
+								 SEK
+							<h:commandButton class="checkout" value="Checkout" action="checkout.xhtml" style="float: right" disabled="#{empty cartBean.cartProducts}" >
+							</h:commandButton>
+						</div>
+						</h:form>
+						
+						</div>
+					
+					</div>
+					
+				</div>
+					
+				<div class="push"></div>
+				
+			</div>
+			
+			<ui:include src="resources/structure/footer.xhtml"/>
+			
+	</h:body>
+</html>

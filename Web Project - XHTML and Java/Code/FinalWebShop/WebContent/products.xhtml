@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:c="http://java.sun.com/jstl/core"
+      xmlns:p="http://primefaces.org/ui">
+	
+	<h:head>
+	
+		<!--Add your own page title-->
+		<title>Awesome Computers</title>
+		
+		<!-- The resources folder must be placed directly under WebContent -->
+		<h:outputStylesheet library="css" name="style.css"  />
+		
+		<link href='https://fonts.googleapis.com/css?family=Orbitron:900' rel='stylesheet' type='text/css'></link>
+		
+		<f:metadata>
+			<f:viewParam name="category" value="#{productsBean.category}" />
+			<f:viewParam name="sort" value="#{productsBean.sort}" />
+			<f:viewParam name="descendingorder" value="#{productsBean.descendingOrder}" />
+			<!--<f:viewParam name="display" value="#{productsBean.display}" />
+			<f:viewParam name="page" value="#{productsBean.page}" />-->
+			<!--<f:event type="preRenderView" listener="#{productsBean.onLoad()}"/>-->
+		</f:metadata>
+		
+	</h:head>
+	<h:body onload="#{productsBean.onLoad()}">
+			<div class="pagewrapper">
+				
+				<ui:include src="resources/structure/header.xhtml" />
+				
+				<div class="contentwrapper">
+				
+					<ui:include src="resources/structure/sidebar.xhtml" />
+					
+					<div class="contentpadding">
+						<div class="content">
+						
+								<h1><h:outputText value="#{productsBean.heading}" /></h1>
+								<h:outputText value="#{productsBean.paragraph}" escape="false" />
+								
+									
+								   <p:dataTable styleClass="productstable" var="o" value="#{productsBean.products}"
+												emptyMessage="There are no matching products" rowsPerPageLabel="Items per page" rowsPerPageTemplate="10,15,20,25,30,40,#{productsBean.products.size() > 40? productsBean.products.size() : ''}" paginator="true" rows="15">	
+
+										<p:column>
+											<h:outputLink value="productview.xhtml?id=#{o.productID}">
+												<h:graphicImage styleClass="productimg" value="data:image/jpg;base64,#{o.productImageAsBase64}" />
+											</h:outputLink>
+										</p:column>
+										
+										<p:column>
+											<f:facet name="header">
+												<h:outputLink value="?category=#{productsBean.categoryInUse}&amp;sort=name&amp;descendingorder=#{productsBean.getAscendingLink()}">
+													Name
+													<ui:fragment rendered="#{productsBean.sort eq 'name'}">
+														<h:graphicImage value="/resources/img/arrow-down.png" styleClass="ascend" rendered="#{productsBean.descendingOrder eq '1'}" />
+														<h:graphicImage value="/resources/img/arrow-up.png" styleClass="ascend" rendered="#{productsBean.descendingOrder eq '0'}" />
+													</ui:fragment>
+												</h:outputLink>
+											</f:facet>
+											<a href="productview.xhtml?id=#{o.productID}">#{o.productName}</a>
+										</p:column>
+										
+										<p:column width="25%">
+											<f:facet name="header">
+												Description
+											</f:facet>
+												<h:outputText value="#{o.productDescription}" escape="false"/>
+										</p:column>
+										
+										<p:column style="white-space: nowrap;" rendered="#{productsBean.categoryInUse eq 'All'}">
+											<f:facet name="header">
+												<h:outputLink value="?category=#{productsBean.categoryInUse}&amp;sort=category&amp;descendingorder=#{productsBean.getAscendingLink()}">
+													Category
+													
+													<ui:fragment rendered="#{productsBean.sort eq 'category'}">
+														<h:graphicImage value="/resources/img/arrow-down.png" styleClass="ascend" rendered="#{productsBean.descendingOrder eq '1'}" />
+														<h:graphicImage value="/resources/img/arrow-up.png" styleClass="ascend" rendered="#{productsBean.descendingOrder eq '0'}" />
+													</ui:fragment>
+												</h:outputLink>
+											</f:facet>
+											#{o.productCategory}
+										</p:column>
+										
+										<p:column style="text-align: right;">
+											<f:facet name="header">
+												<h:outputLink value="?category=#{productsBean.categoryInUse}&amp;sort=price&amp;descendingorder=#{productsBean.getAscendingLink()}">
+													Price
+													<ui:fragment rendered="#{productsBean.sort eq 'price'}">
+														<h:graphicImage value="/resources/img/arrow-down.png" styleClass="ascend" rendered="#{productsBean.descendingOrder eq '1'}" />
+														<h:graphicImage value="/resources/img/arrow-up.png" styleClass="ascend" rendered="#{productsBean.descendingOrder eq '0'}" />
+													</ui:fragment>
+												</h:outputLink>
+											</f:facet>
+											<div class="pricetag">#{o.productPrice}</div>
+										</p:column>
+										
+										<p:column>
+											<h:form>
+												<p:growl id="tmpMessage" life="1200" />
+												<!-- <h:commandButton
+													class="addtocart"
+													update="tmpMessage"
+													action="#{cartBean.addProductToCart(o)}"
+													disabled="#{cartBean.isInCart(o.productID)}"> -->
+												<h:commandButton class="addtocart" update="tmpMessage" action="#{cartBean.addProductToCart(o)}" disabled="#{!productViewBean.inStock(o) or cartBean.fullAmountInCart(o)}">
+													<f:actionListener binding="#{cartBean.showAddedMessage()}" />
+													<f:ajax render="@form cartQuantity" />
+												</h:commandButton>
+											</h:form>
+										</p:column>
+										
+								   </p:dataTable>
+
+						</div>
+					</div>
+					
+				</div>
+					
+				<div class="push"></div>
+				
+			</div>
+			
+			<ui:include src="resources/structure/footer.xhtml"/>
+			
+	</h:body>
+</html>

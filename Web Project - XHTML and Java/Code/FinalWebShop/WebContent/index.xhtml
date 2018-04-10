@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+	  xmlns:p="http://primefaces.org/ui">
+	
+	<h:head>
+	
+		<!--Add your own page title-->
+		<title>Awesome Computers</title>
+		
+		<!-- The resources folder must be placed directly under WebContent -->
+		<h:outputStylesheet library="css" name="style.css"  />
+		
+		<link href='https://fonts.googleapis.com/css?family=Orbitron:900' rel='stylesheet' type='text/css'></link>
+		<link rel="script" href="slideShow.js"></link>
+		
+	</h:head>
+	<h:body>
+	
+			<div class="pagewrapper">
+				
+				<ui:include src="resources/structure/header.xhtml" />
+				
+				<div class="contentwrapper">
+				
+					<ui:include src="resources/structure/sidebar.xhtml" />
+					
+					<div class="contentpadding">
+						<div class="content">
+							<div class="michael">
+								<h1>Welcome to Awesome Computers</h1>
+								<h:form>
+									<p:imageSwitch effect="fade" style="margin-left: auto; margin-right: auto; margin-top: 20px; margin-bottom: 20px;">
+										<ui:repeat value="#{adminBean.tableProducts}" var="prod">
+												<h:outputLink value="productview.xhtml?id=#{prod.productID}">
+													<p:outputLabel id="label" for="computerImg" value="#{prod.productName}" styleClass="labelForImageSlider"/>
+													<div style="width:100%; text-align:center">
+													<h:graphicImage url="data:image;base64, #{prod.productImageAsBase64}" styleClass="productimg"
+																	style="max-height: 300px; max-width: 700px; width: auto; height: auto; display: block; margin:0 auto;" title="#{prod.productName}"
+													id="computerImg"/>
+													</div>
+												</h:outputLink>
+										</ui:repeat>
+									</p:imageSwitch>
+								</h:form>
+
+
+								<h3>This is our latest computers</h3>
+
+								<div class="arrows">
+									<div class="leftArrow">
+										<h:commandButton onclick="PF('switcher').previous();"
+										image="resources/img/left.png" styleClass="left" id="prev"/>
+									</div>
+									
+									<h:outputText value="" />
+
+									<div class="imageSwitch">
+										<p:imageSwitch effect="fade" widgetVar="switcher" id="manuelSwitcher"
+													   slideshowAuto="false">
+											<ui:repeat value="#{adminBean.tableNewestProducts}" var="prod" id="manuelSwitcherImages">
+												<h:panelGrid columns="2" cellpadding="20">
+													<h:outputLink value="productview.xhtml?id=#{prod.productID}">
+													<h:graphicImage url="data:img;base64, #{prod.productImageAsBase64}" height="100px" width="100px" id="image"/>
+													</h:outputLink>
+													<h:outputText value="#{prod.productName}"/>
+												</h:panelGrid>
+											</ui:repeat>
+										</p:imageSwitch>
+									</div>
+
+									<div class="rightArrow">
+										<h:commandButton onclick="PF('switcher').next();"
+										image="resources/img/right.png" styleClass="right" id="next"/>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+					
+				<div class="push"></div>
+				
+			</div>
+			
+			<ui:include src="resources/structure/footer.xhtml"/>
+			
+	</h:body>
+</html>

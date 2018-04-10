@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+		"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html	xmlns="http://www.w3.org/1999/xhtml"
+		xmlns:f="http://xmlns.jcp.org/jsf/core"
+		xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+		xmlns:h="http://xmlns.jcp.org/jsf/html"
+		xmlns:a="http://xmlns.jcp.org/jsf/passthrough"
+		xmlns:p="http://primefaces.org/ui">
+	<h:head>
+		<f:metadata><!-- I found this way is used by many on the Internet to redirect to a page based on condition -->
+			<f:viewAction action="#{loginBean.checkAdminRedirect(false)}" /><!-- Will redirect to the return of this method -->
+		</f:metadata>	<!-- The idea is to be redirected to the proper page (between 'admin' and 'login' page) base on if you
+							are already logged in for this session or not, and prevent access to admin-pages without login -->
+		<title>Admin Pages</title>
+	</h:head>
+	<ui:composition template="/WEB-INF/templates/adminTemplate.xhtml">
+		<ui:define name="bottom">
+			<h:panelGroup id="bottomForms" layout="block">
+
+				<h:panelGroup layout="block" rendered="#{adminBean.section eq 'Orders'}"><!-- Display this form or panel if 'Orders' is selected -->
+					<h:form>
+						<h:selectOneMenu styleClass="txtBox"  value="#{adminBean.searchByValue}"><!-- Tried to use a variable like in javascript is declared on the fly, and it succeeded -->
+							<f:selectItem itemValue="By Order Number" />
+							<f:selectItem itemValue="By Customer First Name" />
+							<f:selectItem itemValue="By Customer Last Name" />
+							<f:selectItem itemValue="By Customer Phone Number" />
+							<f:selectItem itemValue="By Customer Email" />
+							<f:selectItem itemValue="By Order Status" />
+							<f:selectItem itemValue="Display All" />
+							<f:ajax render="@form" />
+						</h:selectOneMenu>
+						<h:inputText style="width: 340px;" styleClass="txtBox" a:placeholder="Search Products" rendered="#{adminBean.searchByValue ne 'By Order Status' and adminBean.searchByValue ne 'Display All'}" value="#{adminBean.searchTextBox}" />
+						<h:selectOneMenu style="width: 360px;" styleClass="txtBox" rendered="#{adminBean.searchByValue eq 'By Order Status'}" value="#{adminBean.searchComboMenu}">
+							<f:selectItems value="#{adminBean.orderStatuses}" />
+						</h:selectOneMenu>
+						<h:commandButton action="#{adminBean.searchOrders()}" styleClass="button" value="Search">
+							<f:ajax execute="@form" render="@form ordersTableForm" />
+						</h:commandButton>
+					</h:form><br />
+					<h:form id="ordersTableForm">
+						<!-- Here starts the data-table for Orders -->
+						<!-- <h:dataTable border="2" value="#{adminBean.tableOrders}" var="order" styleClass="dataTable"
+									headerClass="dataTableHeader" rowClasses="dataTableOddRow, dataTableEvenRow"
+									columnClasses="idColumn, orderNameColumn, orderNameColumn, orderPhoneColumn, orderEmailColumn, orderAddressColumn, orderDateColumn, orderProdsColumn, priceColumn, orderStatColumn, editColumn"> -->
+						<p:dataTable emptyMessage="There is no matching Orders" rowsPerPageLabel=" Rows per page" rowsPerPageTemplate="10,15,20,25,30,35,40" paginator="true" rows="15"
+									value="#{adminBean.tableOrders}" var="order" styleClass="dataTable" rowIndexVar="rowIndex" headerClass="dataTableHeader"
+									rowStyleClass="#{(rowIndex mod 2) eq 0 ? 'dataTableOddRow' : 'dataTableEvenRow'}">
+							<p:column styleClass="idColumn" sortBy="#{order.orderNumber}">
+								<f:facet name="header">Num</f:facet>
+								<h:outputText value="#{order.orderNumber}" /><!-- This one is always rendered -->
+							</p:column>
+							<p:column styleClass="orderNameColumn" sortBy="#{order.customerFirstName}">
+								<f:facet name="header">Customer First Name</f:facet>
+								<h:outputText value="#{order.customerFirstName}" rendered="#{not order.inEdit}" />
+								<h:inputText value="#{order.customerFirstName}" style="text-align:center; width: 95%;" rendered="#{order.inEdit}" />
+							</p:column>
+							<p:column styleClass="orderNameColumn" sortBy="#{order.customerLastName}">
+								<f:facet name="header">Customer Last Name</f:facet>
+								<h:outputText value="#{order.customerLastName}" rendered="#{not order.inEdit}" />
+								<h:inputText value="#{order.customerLastName}" style="text-align:center; width: 95%;" rendered="#{order.inEdit}" />
+							</p:column>
+							<p:column styleClass="orderPhoneColumn" sortBy="#{order.customerPhoneNumber}">
+								<f:facet name="header">Customer Phone Number</f:facet>
+								<h:outputText value="#{order.customerPhoneNumber}" rendered="#{not order.inEdit}" />
+								<h:inputText value="#{order.customerPhoneNumber}" style="text-align:center; width: 95%;" rendered="#{order.inEdit}" />
+							</p:column>
+							<p:column styleClass="orderEmailColumn" sortBy="#{order.customerEmail}">
+								<f:facet name="header">Customer Email</f:facet>
+								<h:outputLink value="mailto:#{order.customerEmail}" rendered="#{not order.inEdit}">#{order.customerEmail}</h:outputLink>
+								<h:inputText  value="#{order.customerEmail}" style="text-align:center; width: 95%;" rendered="#{order.inEdit}" />
+							</p:column>
+							<p:column styleClass="orderAddressColumn">
+								<f:facet name="header">Customer Address</f:facet>
+								<!-- <h:outputText value="#{order.customerAddress}" rendered="#{not order.inEdit}" /> -->
+								<!-- <h:inputTextarea value="#{order.customerAddress}" style="width: 97%; height: 99%;" rendered="#{order.inEdit}" /> -->
+								<h:inputTextarea value="#{order.customerAddress}" style="width: 97%; height: 99%; background-color: #{order.inEdit ? '' : '#e0e0e0'};" readonly="#{not order.inEdit}" />
+							</p:column>
+							<p:column styleClass="orderDateColumn" sortBy="#{order.orderDate}">
+								<f:facet name="header">Order's Data &amp; Time</f:facet>
+								<!-- <h:outputText value="#{order.orderDate}" rendered="#{not order.inEdit}">
+									<f:convertDateTime pattern="dd-MM-yyyy HH:mm:ss" />
+								</h:outputText>
+								<h:inputTextarea value="#{order.orderDate}" style="width: 95%; height: 99%;" rendered="#{order.inEdit}">
+									<f:convertDateTime pattern="dd-MM-yyyy HH:mm:ss" />
+								</h:inputTextarea> -->
+								<h:outputText value="#{order.orderDate}">
+									<f:convertDateTime pattern="dd-MM-yyyy HH:mm:ss" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="orderProdsColumn">
+								<f:facet name="header">Order's Products</f:facet>
+								<!-- <h:selectManyMenu readonly="true" style="width: 99%; height: 48px; background-color: #{order.inEdit ? '' : '#e0e0e0'};">
+									<f:selectItems value="#{order.orderProducts}" var="prod" itemLabel="[#{prod.productID} : #{prod.productAmount}] : #{prod.productName}" />This var thing is nice
+								</h:selectManyMenu> -->
+								<h:selectManyMenu readonly="true" style="width: 99%; height: 48px; background-color: #e0e0e0;">
+									<f:selectItems value="#{order.orderProducts}" var="prod" itemLabel="[#{prod.productID} : #{prod.productAmount}] : #{prod.productName}" /><!-- This var thing is nice -->
+								</h:selectManyMenu>
+							</p:column>
+							<p:column styleClass="priceColumn" sortBy="#{order.totalPrice}">
+								<f:facet name="header">Total Order Price</f:facet>
+								<h:outputText value="#{order.totalPrice}" />
+								<!-- <h:outputText value="#{order.totalPrice}" rendered="#{not order.inEdit}" />
+								<h:inputText value="#{order.totalPrice}" style="text-align: center; width: 92%;" rendered="#{order.inEdit}" /> -->
+							</p:column>
+							<p:column styleClass="orderStatColumn" sortBy="#{order.orderStatus}">
+								<f:facet name="header">Order Status</f:facet>
+								<h:outputText value="#{order.orderStatus}" rendered="#{not order.inEdit}" />
+								<h:selectOneMenu value="#{order.orderStatus}" style="width: 98%; height: 98%;" rendered="#{order.inEdit}">
+									<f:selectItems value="#{adminBean.orderStatuses}" />
+								</h:selectOneMenu>
+							</p:column>
+							<p:column styleClass="editColumn"><!-- Here starts the buttons column -->
+								<!-- <f:facet name="header">Edit</f:facet> -->
+								<h:commandButton action="#{order.setInEdit(true)}" style="width: 99%; height: 50px;" value="Edit" rendered="#{not order.inEdit}">
+									<f:ajax render="@form" />
+								</h:commandButton>
+								<h:commandButton action="#{order.setInEdit(false)}" style="padding: 2px; width: 33%; height: 50px;" value="Save" rendered="#{order.inEdit}">
+									<f:actionListener binding="#{adminBean.updateOrderInDatabase(order)}" />
+									<f:ajax execute="@form" render="@form" />
+								</h:commandButton>
+								<h:commandButton action="#{order.setInEdit(false)}" style="padding: 2px; width: 33%; height: 50px;" value="Delete" rendered="#{order.inEdit}">
+									<f:actionListener binding="#{adminBean.deleteOrderFromDatabase(order)}" />
+									<f:ajax render="@form" />
+								</h:commandButton>
+								<h:commandButton action="#{order.setInEdit(false)}" style="padding: 2px; width: 34%; height: 50px;" value="Cancel" rendered="#{order.inEdit}">
+									<f:ajax render="@form" />
+								</h:commandButton>
+							</p:column>
+						</p:dataTable>
+					</h:form>
+				</h:panelGroup>
+
+				<h:panelGroup layout="block" style="height: 100px;" rendered="#{adminBean.section.startsWith('Products')}">
+					<h:form id="insideRadios" style="float: right;"><!-- Will use the CSS styling to hide the radios and keep the button-like-labels -->
+						<!-- A nice simple (without javascript) 'Radio as toggle buttons' got it from site:
+							'http://jsfiddle.net/davidelrizzo/DYJkG/' (it's a test station.. original source not found)
+							but was for html and headache-ly changed to match JSF (check CSS file) -->
+						<!-- (Solved it.. :-) check fixRender.js file ) Next component, first I had to use 'onchange="this.form.submit();' coz AJAX gave me some strange behavior on this particular one -->
+						<h:selectOneRadio id="radioButton" enabledClass="toggle-btn-grp" value="#{adminBean.section}">
+							<f:selectItem itemValue="Products:ViewProducts" itemLabel="Show Products" />
+							<f:selectItem itemValue="Products:AddProduct" itemLabel="Add A Product" />
+							<f:selectItem itemValue="Products:AddProductCategory" itemLabel="Manage Categories" />
+							<f:ajax render="bottomForms" event="change" listener="#{adminBean.resetAdminPage()}" />
+						</h:selectOneRadio>
+					</h:form>
+				</h:panelGroup>
+
+				<h:panelGroup layout="block" rendered="#{adminBean.section eq 'Products:AddProduct'}">
+					<h:form enctype="multipart/form-data">
+						<!-- <h:dataTable border="2"  value="#{adminBean.productToSave}" var="toSave" styleClass="dataTable" headerClass="dataTableHeader"
+									columnClasses="idColumn, nameColumn, imageColumn, priceColumn, categoryColumn, descriptionColumn, amountColumn, editColumn"> -->
+						<p:dataTable headerClass="dataTableHeader" value="#{adminBean.productToSave}" var="toSave" styleClass="dataTable" rowStyleClass="dataTableOddRow">
+							<p:column styleClass="idColumn">
+								<f:facet name="header">ID</f:facet>
+								<h:outputText value="Auto" />
+							</p:column>
+							<p:column styleClass="nameColumn">
+								<f:facet name="header">Name</f:facet>
+								<h:inputText value="#{toSave.productName}" style="text-align:center; width: 95%;">
+									<f:ajax render="@this saveProductButton" />
+								</h:inputText>
+							</p:column>
+							<p:column styleClass="imageColumn">
+								<f:facet name="header">Image</f:facet>
+								<h:outputLabel for="uploadImageSave" styleClass="custom-file-upload" value="Upload" />
+								<h:inputFile id="uploadImageSave" value="#{toSave.productImage}">
+									<f:ajax render="@this saveProductButton" />
+								</h:inputFile>
+							</p:column>
+							<p:column styleClass="priceColumn">
+								<f:facet name="header">Price</f:facet>
+								<h:inputText value="#{toSave.productPrice}" style="text-align: center; width: 92%;">
+									<f:ajax render="@this saveProductButton" />
+								</h:inputText>
+							</p:column>
+							<p:column styleClass="categoryColumn">
+								<f:facet name="header">Category</f:facet>
+								<h:selectOneMenu style="width: 98%;" value="#{toSave.productCategory}">
+									<f:ajax render="@this saveProductButton" />
+									<f:selectItems value="#{adminBean.getCategories()}" />
+								</h:selectOneMenu>
+							</p:column>
+							<p:column styleClass="descriptionColumn">
+								<f:facet name="header">Description</f:facet>
+								<h:inputTextarea value="#{toSave.productDescription}" style="width: 98%; height: 90px;">
+									<f:ajax render="@this saveProductButton" />
+								</h:inputTextarea>
+							</p:column>
+							<p:column styleClass="descriptionColumn">
+								<f:facet name="header">Long Description</f:facet>
+								<!-- <h:inputTextarea value="#{toSave.productDescription}" style="width: 98%; height: 98%;">
+									<f:ajax render="@this saveProductButton" />
+								</h:inputTextarea> -->
+								<p:editor value="#{toSave.productLongDescription}" controls="style" height="98">
+									<!-- <f:ajax render="@this saveProductButton" /> -->
+								</p:editor>
+							</p:column>
+							<p:column styleClass="amountColumn">
+								<f:facet name="header">Amount</f:facet>
+								<h:inputText value="#{toSave.productAmount}" style="text-align: center; width: 90%;">
+									<f:ajax render="@this saveProductButton" />
+								</h:inputText>
+							</p:column>
+							<p:column styleClass="editColumn">
+								<!-- <f:facet name="header">Edit</f:facet> -->
+								<h:commandButton id="saveProductButton" action="#{adminBean.addProductToDatabase(toSave)}" style="width: 99%; height: 100px;" value="Add New"
+											disabled="#{toSave.productName eq null or toSave.productName.isEmpty() or toSave.productImage eq null or toSave.productPrice eq null or toSave.productCategory eq null or toSave.productDescription eq null or toSave.productDescription.isEmpty()}">
+									<f:ajax execute="@form" render="@all" /><!-- Damn this JSF doesn't follow IDs.. I had to render all the page.. Well.. then I had to remove it -->
+								</h:commandButton>
+							</p:column>
+						</p:dataTable><br />
+					</h:form>
+				</h:panelGroup>
+
+				<h:panelGroup layout="block" rendered="#{adminBean.section eq 'Products:AddProductCategory'}">
+					<h:form><!-- A form to add and delete categories -->
+						<h:selectOneListbox style="width: 30em;" styleClass="txtBox" value="#{adminBean.selectedCategory}" >
+							<f:ajax render="@this textBoxSelectedCategoty" />
+							<f:selectItems value="#{adminBean.getCategories()}" />
+						</h:selectOneListbox><br /><br />
+						<h:inputText id="textBoxSelectedCategoty" size="24" styleClass="txtBox" value="#{adminBean.selectedCategory}">
+							<f:ajax render="@this" />
+						</h:inputText>
+						<h:commandButton action="#{adminBean.addDeleteCategory()}" styleClass="button" value="Add / Delete a Category">
+							<f:ajax render="@all" />
+						</h:commandButton>
+					</h:form>
+				</h:panelGroup>
+
+				<h:panelGroup id="panelContainer" layout="block" rendered="#{adminBean.section eq 'Products:ViewProducts'}"><!-- Display this form or panel if 'Products' is selected -->
+					<h:form>
+						<h:selectOneMenu styleClass="txtBox"  value="#{adminBean.searchByValue}">
+							<f:selectItem itemValue="By ID" />
+							<f:selectItem itemValue="By Name" />
+							<f:selectItem itemValue="By Category" />
+							<f:selectItem itemValue="Display All" />
+							<f:ajax render="@form" />
+						</h:selectOneMenu>
+						<h:inputText style="width: 340px;" styleClass="txtBox" a:placeholder="Search Products" rendered="#{adminBean.searchByValue eq 'By ID' or adminBean.searchByValue eq 'By Name'}" value="#{adminBean.searchTextBox}" />
+						<h:selectOneMenu style="width: 360px;" styleClass="txtBox" rendered="#{adminBean.searchByValue eq 'By Category'}" value="#{adminBean.searchComboMenu}">
+							<f:selectItems value="#{adminBean.getCategories()}" />
+						</h:selectOneMenu>
+						<h:commandButton action="#{adminBean.searchProducts()}" styleClass="button" value="Search">
+							<f:ajax execute="@form" render="@form productsTableForm" />
+						</h:commandButton>
+					</h:form><br />
+
+					<h:form id="productsTableForm" enctype="multipart/form-data">
+						<!-- Here starts the data-table for Products -->
+						<!-- <div style="overflow-y: auto; border: 1px solid #cccccc; height: 200px;"> -->
+						<!-- <h:dataTable border="2" value="#{adminBean.tableProducts}" var="product" styleClass="dataTable"
+									headerClass="dataTableHeader" rowClasses="dataTableOddRow, dataTableEvenRow"
+									columnClasses="idColumn, nameColumn, imageColumn, priceColumn, categoryColumn, descriptionColumn, amountColumn, editColumn"> -->
+						<p:dataTable emptyMessage="There is no matching Products" rowsPerPageLabel=" Rows per page" rowsPerPageTemplate="10,15,20,25,30,35,40" paginator="true" rows="15"
+									value="#{adminBean.tableProducts}" var="product" styleClass="dataTable" rowIndexVar="rowIndex"
+									rowStyleClass="#{(rowIndex mod 2) eq 0 ? 'dataTableOddRow' : 'dataTableEvenRow'}">
+							<p:column styleClass="idColumn" sortBy="#{product.productID}">
+								<f:facet name="header">ID</f:facet>
+								<h:outputText value="#{product.productID}" /><!-- This one is always rendered -->
+							</p:column>
+							<p:column styleClass="nameColumn"  sortBy="#{product.productName}">
+								<f:facet name="header">Name</f:facet>
+								<h:outputText value="#{product.productName}" rendered="#{not product.inEdit}" />
+								<h:inputText value="#{product.productName}" style="text-align:center; width: 95%;" rendered="#{product.inEdit}" />
+							</p:column>
+							<p:column styleClass="imageColumn">
+								<f:facet name="header">Image</f:facet>
+								<h:graphicImage url="data:image;base64,#{product.productImageAsBase64}" width="66" height="50" rendered="#{not product.inEdit}" />
+								<h:outputLabel for="uploadImageView" styleClass="custom-file-upload" value="Upload" rendered="#{product.inEdit}" />
+								<h:inputFile id="uploadImageView" value="#{product.productImage}" rendered="#{product.inEdit}">
+									<f:ajax render="@this" />
+									<!-- <h:outputScript  rendered="#{not (product.validateUploadedImage())}">
+										alert('Error: Uploaded file must be an image of type JPEG and size less than 10MB.');
+									</h:outputScript> -->
+								</h:inputFile>
+							</p:column>
+							<p:column styleClass="priceColumn" sortBy="#{product.productPrice}">
+								<f:facet name="header">Price</f:facet>
+								<h:outputText value="#{product.productPrice}" rendered="#{not product.inEdit}" />
+								<h:inputText value="#{product.productPrice}" style="text-align: center; width: 92%;" rendered="#{product.inEdit}" />
+							</p:column>
+							<p:column styleClass="categoryColumn" sortBy="#{product.productCategory}">
+								<f:facet name="header">Category</f:facet>
+								<h:outputText value="#{product.productCategory}" rendered="#{not product.inEdit}" />
+								<h:selectOneMenu value="#{product.productCategory}" style="width: 98%;" rendered="#{product.inEdit}">
+									<f:selectItems value="#{adminBean.getCategories()}" />
+								</h:selectOneMenu>
+							</p:column>
+							<p:column styleClass="descriptionColumn">
+								<f:facet name="header">Description</f:facet>
+								<h:outputText value="#{product.productDescription}" rendered="#{not product.inEdit}" />
+								<h:inputTextarea value="#{product.productDescription}" style="width: 98%; height: 90px;" rendered="#{product.inEdit}" />
+							</p:column>
+							<p:column styleClass="descriptionColumn">
+								<f:facet name="header">Long Description</f:facet>
+								<h:panelGroup layout="block" style="width: 98%; height: 100px; overflow-y: scroll;" rendered="#{not product.inEdit}">
+									<h:outputText value="#{product.productLongDescription}" escape="false" />
+								</h:panelGroup>
+								<p:editor value="#{product.productLongDescription}" controls="style" height="98" rendered="#{product.inEdit}" />
+							</p:column>
+							<p:column styleClass="amountColumn" sortBy="#{product.productAmount}">
+								<f:facet name="header">Amount</f:facet>
+								<h:outputText value="#{product.productAmount}" rendered="#{not product.inEdit}" />
+								<h:inputText value="#{product.productAmount}" style="text-align: center; width: 90%;" rendered="#{product.inEdit}" />
+							</p:column>
+							<p:column styleClass="editColumn"><!-- Here starts the buttons column -->
+								<!-- <f:facet name="header">Edit</f:facet> -->
+								<h:commandButton action="#{product.setInEdit(true)}" style="width: 99%; height: 100px;" value="Edit" rendered="#{not product.inEdit}">
+									<!-- <f:ajax render="panelContainer" /> -->
+									<p:ajax update="panelContainer" />
+								</h:commandButton>
+								<h:commandButton action="#{product.setInEdit(false)}" style="padding: 2px; width: 33%; height: 100px;" value="Save" rendered="#{product.inEdit}">
+									<f:actionListener binding="#{adminBean.updateProductInDatabase(product)}" />
+									<f:ajax execute="@form" render="@form" />
+								</h:commandButton>
+								<h:commandButton action="#{product.setInEdit(false)}" style="padding: 2px; width: 33%; height: 100px;" value="Delete" rendered="#{product.inEdit}">
+									<f:actionListener binding="#{adminBean.deleteProductFromDatabase(product)}" />
+									<f:ajax render="@form" />
+									<h:messages style="color:red;margin:8px;" />
+								</h:commandButton>
+								<h:commandButton action="#{product.setInEdit(false)}" style="padding: 2px; width: 34%; height: 100px;" value="Cancel" rendered="#{product.inEdit}">
+									<f:actionListener binding="#{product.setProductImage(null)}" /><!-- Bind with another method -->
+									<f:ajax render="@form" />
+								</h:commandButton>
+							</p:column>
+						</p:dataTable>
+						<!-- </div> -->
+					</h:form><br />
+				</h:panelGroup>
+
+				<h:panelGroup layout="block" rendered="#{adminBean.section eq 'Accounts'}"><!-- Display this form or panel if 'Accounts' is selected -->
+					<h:form>
+						<h:inputText style="width: 340px;" styleClass="txtBox" a:placeholder="Search Admins By Username" value="#{adminBean.searchTextBox}" />
+						<h:commandButton action="#{adminBean.searchAdmins()}" styleClass="button" value="Search">
+							<f:ajax execute="@form" render="@form adminsTableForm" />
+						</h:commandButton>
+					</h:form><br />
+					<h:form>
+						<h:dataTable border="2"  value="#{adminBean.adminToSave}" var="toSave" styleClass="dataTable"
+									headerClass="dataTableHeader" rowClasses="dataTableOddRow, dataTableEvenRow"
+									columnClasses="adminNameColumn, , adminEditColumn">
+							<h:column>
+								<h:inputText value="#{toSave.userName}" style="text-align:center; width: 98%;">
+									<f:ajax render="@this saveProductButton" />
+								</h:inputText>
+							</h:column>
+							<h:column>
+								<h:inputSecret redisplay="true" value="#{toSave.password}" style="text-align: center; width: 98%;">
+									<f:ajax render="@this saveProductButton" />
+								</h:inputSecret>
+							</h:column>
+							<h:column>
+								<h:commandButton id="saveProductButton" action="#{adminBean.addAdminToDatabase(toSave)}" style="width: 99%; height: 40px;" value="Add New"
+											disabled="#{toSave.userName eq null or toSave.userName.isEmpty() or toSave.password eq null or toSave.password.isEmpty()}">
+									<f:ajax execute="@form" render="@all" /><!-- Damn this JSF doesn't follow IDs.. I had to render all the page.. -->
+								</h:commandButton>
+							</h:column>
+						</h:dataTable><br />
+					</h:form>
+					<h:form id="adminsTableForm">
+						<!-- Here starts the data-table for Admins -->
+						<h:dataTable border="2" value="#{adminBean.tableAdmins}" var="admin" styleClass="dataTable"
+										headerClass="dataTableHeader" rowClasses="dataTableOddRow, dataTableEvenRow"
+										columnClasses="adminNameColumn, , adminEditColumn">
+							<h:column>
+								<f:facet name="header">Admin User Name</f:facet>
+								<h:outputText value="#{admin.userName}" />
+							</h:column>
+							<h:column>
+								<f:facet name="header">Admin Password</f:facet>
+								<h:inputSecret id="passwordBox" value="#{admin.password}" redisplay="true" style="text-align: center; width: 98%;" disabled="#{not admin.inEdit}" />
+							</h:column>
+							<h:column><!-- Here starts the buttons column -->
+								<f:facet name="header">Edit</f:facet>
+								<h:commandButton action="#{admin.setInEdit(true)}" style="width: 99%; height: 40px;" value="Edit" rendered="#{not admin.inEdit}">
+									<f:ajax render="@form" />
+								</h:commandButton>
+								<h:commandButton action="#{admin.setInEdit(false)}" style="padding: 2px; width: 33%; height: 40px;" value="Save" rendered="#{admin.inEdit}">
+									<f:actionListener binding="#{adminBean.updateAdminInDatabase(admin)}" />
+									<f:ajax execute="passwordBox" render="@form" />
+								</h:commandButton>
+								<h:commandButton action="#{admin.setInEdit(false)}" style="padding: 2px; width: 33%; height: 40px;" value="Delete" rendered="#{admin.inEdit}">
+									<f:actionListener binding="#{adminBean.deleteAdminFromDatabase(admin)}" />
+									<f:ajax render="@form" />
+								</h:commandButton>
+								<h:commandButton action="#{admin.setInEdit(false)}" style="padding: 2px; width: 34%; height: 40px;" value="Cancel" rendered="#{admin.inEdit}">
+									<f:ajax render="@form" />
+								</h:commandButton>
+							</h:column>
+						</h:dataTable>
+					</h:form>
+				</h:panelGroup>
+			</h:panelGroup>
+		<p:ajaxStatus onstart="document.getElementsByTagName('body')[0].className = 'loading';"
+						onsuccess="document.getElementsByTagName('body')[0].className = '';" /><!-- This one to add the rotating progress circle for the PrimeFaces too -->
+		</ui:define>
+	</ui:composition>
+</html>

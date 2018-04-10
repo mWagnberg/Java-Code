@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+
+    <!--Add your own page title-->
+    <title>Awesome Computers</title>
+
+    <!-- The resources folder must be placed directly under WebContent -->
+    <h:outputStylesheet library="css" name="style.css"  />
+
+    <link href='https://fonts.googleapis.com/css?family=Orbitron:900' rel='stylesheet' type='text/css'></link>
+    <link rel="script" href="slideShow.js"></link>
+
+</h:head>
+<h:body>
+
+    <div class="pagewrapper">
+
+        <ui:include src="resources/structure/header.xhtml" />
+
+        <div class="contentwrapper">
+
+            <ui:include src="resources/structure/sidebar.xhtml" />
+
+            <div class="contentpadding">
+                <div class="content">
+                    <div class="newProducts">
+                        <h1>New products</h1>
+                        <h:form>
+                            <h:dataTable value="#{adminBean.tableNewestProducts}" var="prod"
+                            styleClass="productstable">
+                                <h:column>
+                                    <h:graphicImage url="data:image;base64, #{prod.productImageAsBase64}" styleClass="productimg"/>
+                                </h:column>
+                                <h:column>
+                                    <f:facet name="header">Product</f:facet>
+                                    <h:outputLink value="productview.xhtml?id=#{prod.productID}">
+                                        #{prod.productName}
+                                    </h:outputLink>
+                                </h:column>
+                                <h:column>
+                                    <f:facet name="header">Description</f:facet>
+                                    #{prod.productDescription}
+                                </h:column>
+                                <h:column>
+                                    <f:facet name="header">Category</f:facet>
+                                    #{prod.productCategory}
+                                </h:column>
+                                <h:column>
+                                    <f:facet name="header">Price</f:facet>
+                                    <div class="pricetag">
+                                    #{prod.productPrice}
+                                    </div>
+                                </h:column>
+                                <h:column>
+										<p:growl id="tmpMessage" life="1200" />
+										<h:commandButton class="addtocart" update="tmpMessage" action="#{cartBean.addProductToCart(prod)}" disabled="#{!productViewBean.inStock(prod) or cartBean.fullAmountInCart(prod)}">
+											<f:actionListener binding="#{cartBean.showAddedMessage()}" />
+											<f:ajax render="@form cartQuantity" />
+										</h:commandButton>
+                                </h:column>
+                            </h:dataTable>
+                        </h:form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="push"></div>
+
+    </div>
+
+    <ui:include src="resources/structure/footer.xhtml"/>
+
+</h:body>
+</html>
